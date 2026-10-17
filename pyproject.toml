@@ -13,7 +13,11 @@ authors = [{ name = "Noman Jafar", email = "numanjafarshahzad@gmail.com" }]
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.6"]
+plots = ["matplotlib>=3.8"]
+dev = ["pytest>=8", "ruff>=0.6", "matplotlib>=3.8"]
+
+[project.scripts]
+serving-benchmarks = "serving_benchmarks.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/serving_benchmarks"]
@@ -22,4 +26,4 @@ packages = ["src/serving_benchmarks"]
 testpaths = ["tests"]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
