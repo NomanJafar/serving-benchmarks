@@ -17,7 +17,7 @@ Load curves for Qwen2.5-3B-Instruct on one T4 under four servers, all measured w
 
 For each: TTFT and ITL percentiles against offered load, output tokens per second, goodput under a stated SLO (TTFT ≤ 1 s, TPOT ≤ 60 ms), the knee (the load with the most goodput), and $ per million output tokens at an assumed $0.35/h, for all tokens and for the tokens that met the SLO.
 
-[METHODOLOGY.md](METHODOLOGY.md) is the contract: configurations with exact `vllm serve` lines, the workload and why it is open-loop, the metric definitions, the SLO and price and why those values, threats to validity, and how to rerun. The analysis (`serving-benchmarks report`) is pure Python over tokenbench's JSON and is covered by 12 tests on synthetic sweeps, so the tables can be regenerated from the committed raw data by anyone.
+[METHODOLOGY.md](METHODOLOGY.md) is the contract: configurations with exact `vllm serve` lines, the workload and why it is open-loop, the metric definitions, the SLO and price and why those values, threats to validity, and how to rerun. The analysis (`serving-benchmarks report`) is pure Python over tokenbench's JSON and is covered by 13 tests on synthetic sweeps, so the tables can be regenerated from the committed raw data by anyone.
 
 ## Why it matters
 
