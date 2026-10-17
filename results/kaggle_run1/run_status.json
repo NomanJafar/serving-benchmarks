@@ -1,0 +1,9 @@
+{
+ "done": [
+  "fp16",
+  "fp16-prefix",
+  "awq-prefix",
+  "specdec-k1"
+ ],
+ "failed": {}
+}

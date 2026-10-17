@@ -47,3 +47,24 @@ def test_missing_startup_file_is_tolerated(tmp_path):
     (tmp_path / "sweep_x.json").write_text(json.dumps(fake_sweep("x")))
     res = load_results(tmp_path)
     assert res["x"]["startup"] == {}
+
+
+def test_slo_is_recomputed_per_token_from_the_request_records():
+    """tokenbench's run-time TPOT divided by stream chunks; a speculative server sends ~1.7 tokens per chunk, so its
+    recorded SLO pass rate is too low. When per_request records are present, curve_rows must recompute TPOT as
+    (e2e - ttft) / (completion_tokens - 1) and the SLO pass rate and goodput from that."""
+    from serving_benchmarks.analysis import per_token_slo
+    recs = [{"ttft_s": 0.1, "e2e_s": 0.1 + 0.05 * 99, "completion_tokens": 100, "error": None},     # 50 ms/token: passes
+            {"ttft_s": 0.1, "e2e_s": 0.1 + 0.07 * 99, "completion_tokens": 100, "error": None},     # 70 ms/token: fails TPOT
+            {"ttft_s": 1.5, "e2e_s": 1.5 + 0.05 * 99, "completion_tokens": 100, "error": None},     # fails TTFT
+            {"ttft_s": None, "e2e_s": 2.0, "completion_tokens": 0, "error": "timeout"}]
+    s = per_token_slo(recs, wall_s=10.0, ttft_ms=1000, tpot_ms=60)
+    assert s["slo_pass_rate"] == 0.25 and s["goodput_tok_s"] == 10.0 and abs(s["tpot_p50_ms"] - 50.0) < 1e-6
+    sweep = fake_sweep("x")
+    lv = sweep["levels"][0]
+    lv["per_request"] = recs
+    lv["wall_s"] = 10.0
+    lv["slo_pass_rate"] = 0.9            # the chunk-based figure the run recorded
+    rows = curve_rows(sweep, 0.35)
+    assert rows[0]["slo_pass_rate"] == 0.25 and rows[0]["slo_pass_rate_chunks"] == 0.9 and rows[0]["goodput_tok_s"] == 10.0
+    assert rows[1]["slo_pass_rate_chunks"] is None       # levels without records keep the recorded figures

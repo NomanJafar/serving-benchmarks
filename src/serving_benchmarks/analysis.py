@@ -17,17 +17,54 @@ def _ms(x) -> float | None:
     return None if x is None else round(x * 1000, 1)
 
 
-def curve_rows(sweep: dict, gpu_usd_per_hour: float) -> list[dict]:
+def _pct(xs: list[float], q: float) -> float | None:
+    if not xs:
+        return None
+    s = sorted(xs)
+    k = (len(s) - 1) * q / 100
+    lo, hi = int(k), min(int(k) + 1, len(s) - 1)
+    return s[lo] + (s[hi] - s[lo]) * (k - lo)
+
+
+def per_token_slo(records: list[dict], wall_s: float, ttft_ms: float, tpot_ms: float) -> dict:
+    """SLO pass rate, goodput and TPOT recomputed per *token* from tokenbench's per-request records.
+
+    tokenbench (before its 18 Oct fix) divided TPOT by the number of stream chunks; a speculative server sends
+    about 1.7 tokens per chunk, so its recorded TPOT and SLO pass rate were wrong by that factor. The records
+    carry ttft_s, e2e_s and the server's completion_tokens, which is enough to redo it: TPOT = (e2e - ttft) /
+    (completion_tokens - 1)."""
+    tpots, good_tokens, passed = [], 0, 0
+    for r in records:
+        if r.get("error") is not None or r.get("ttft_s") is None or (r.get("completion_tokens") or 0) < 2:
+            continue
+        tpot = (r["e2e_s"] - r["ttft_s"]) / (r["completion_tokens"] - 1)
+        tpots.append(tpot)
+        if r["ttft_s"] * 1000 <= ttft_ms and tpot * 1000 <= tpot_ms:
+            passed += 1
+            good_tokens += r["completion_tokens"]
+    n = len(records)
+    return {"tpot_p50_ms": _ms(_pct(tpots, 50)), "tpot_p95_ms": _ms(_pct(tpots, 95)), "slo_pass_rate": passed / n if n else None,
+            "goodput_tok_s": round(good_tokens / wall_s, 1) if wall_s else None}
+
+
+def curve_rows(sweep: dict, gpu_usd_per_hour: float, ttft_ms: float = 1000.0, tpot_ms: float = 60.0) -> list[dict]:
     rows = []
     for lv in sweep["levels"]:
         out = lv["output_tokens_per_s"]
         good = lv.get("goodput_tokens_per_s")
+        recomputed = None
+        if lv.get("per_request"):
+            slo = lv.get("slo") or {}
+            recomputed = per_token_slo(lv["per_request"], lv["wall_s"], slo.get("ttft_ms", ttft_ms), slo.get("tpot_ms", tpot_ms))
+            good = recomputed["goodput_tok_s"]
         rows.append({
             "offered_rps": lv["level"], "achieved_rps": round(lv["requests_per_s"], 3), "requests": lv["requests"], "errors": lv["errors"],
             "out_tok_s": round(out, 1), "ttft_p50_ms": _ms(lv["ttft"]["p50"]), "ttft_p95_ms": _ms(lv["ttft"]["p95"]), "ttft_p99_ms": _ms(lv["ttft"].get("p99")),
-            "tpot_p50_ms": _ms(lv["tpot"]["p50"]), "itl_p50_ms": _ms(lv["itl"]["p50"]), "itl_p99_ms": _ms(lv["itl"].get("p99")),
+            "tpot_p50_ms": recomputed["tpot_p50_ms"] if recomputed else _ms(lv["tpot"]["p50"]), "itl_p50_ms": _ms(lv["itl"]["p50"]), "itl_p99_ms": _ms(lv["itl"].get("p99")),
             "e2e_p50_s": round(lv["e2e"]["p50"], 2) if lv["e2e"]["p50"] is not None else None,
-            "slo_pass_rate": lv.get("slo_pass_rate"), "goodput_rps": lv.get("goodput_requests_per_s"),
+            "slo_pass_rate": recomputed["slo_pass_rate"] if recomputed else lv.get("slo_pass_rate"),
+            "slo_pass_rate_chunks": lv.get("slo_pass_rate") if recomputed else None,
+            "goodput_rps": lv.get("goodput_requests_per_s"),
             "goodput_tok_s": round(good, 1) if good is not None else None,
             "usd_per_m_out": usd_per_m_tokens(gpu_usd_per_hour, out), "usd_per_m_good": usd_per_m_tokens(gpu_usd_per_hour, good),
         })

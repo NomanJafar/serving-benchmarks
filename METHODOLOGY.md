@@ -61,6 +61,8 @@ Per level, from tokenbench's aggregate:
 
 The SLO is a choice, stated so it can be disagreed with: 1 s to the first token is the point at which a chat interface starts to feel stuck; 60 ms per token is ~17 tokens/s, faster than people read, and a little above this model's single-stream decode on this GPU (40 ms), so it leaves room for batching but not for a stall. Goodput is reported at this SLO only; `summary.json` has every level's full percentiles so a different SLO can be applied after the fact.
 
+**Addendum after run 1 (18 Oct).** tokenbench's TPOT at the time of the run divided the decode time by the number of *stream chunks*, and a speculative-decoding server emits about 1.7 tokens per chunk, so the speculative configuration's recorded TPOT and SLO pass rate were wrong by that factor (recorded pass rate at 2 req/s: 4 %; per token: 95 %). The report now recomputes TPOT, SLO pass rate and goodput per token from each request's `ttft_s`, `e2e_s` and the server's `completion_tokens`, which the raw JSON carries; `slo_pass_rate_chunks` in `summary.json` keeps the recorded figure. tokenbench itself was fixed the same day. ITL percentiles remain inter-*chunk* gaps for every configuration.
+
 The GPU price is **$0.35 per hour**, an on-demand T4 price at the time of writing; Kaggle's T4 is free. Every dollar figure scales linearly with it.
 
 ## 5. Hardware and software

@@ -7,10 +7,10 @@ from pathlib import Path
 
 from serving_benchmarks.analysis import curve_rows, load_results, markdown_table, summary_rows
 
-CURVE_COLS = ["offered_rps", "achieved_rps", "requests", "errors", "out_tok_s", "ttft_p50_ms", "ttft_p95_ms", "itl_p50_ms", "itl_p99_ms",
+CURVE_COLS = ["offered_rps", "achieved_rps", "requests", "errors", "out_tok_s", "ttft_p50_ms", "ttft_p95_ms", "tpot_p50_ms", "itl_p50_ms", "itl_p99_ms",
               "slo_pass_rate", "goodput_tok_s", "usd_per_m_out", "usd_per_m_good"]
 CURVE_HEADERS = {"offered_rps": "offered req/s", "achieved_rps": "achieved req/s", "out_tok_s": "out tok/s", "ttft_p50_ms": "TTFT p50 ms",
-                 "ttft_p95_ms": "TTFT p95 ms", "itl_p50_ms": "ITL p50 ms", "itl_p99_ms": "ITL p99 ms", "slo_pass_rate": "SLO pass",
+                 "ttft_p95_ms": "TTFT p95 ms", "tpot_p50_ms": "TPOT p50 ms", "itl_p50_ms": "ITL p50 ms", "itl_p99_ms": "ITL p99 ms", "slo_pass_rate": "SLO pass",
                  "goodput_tok_s": "goodput tok/s", "usd_per_m_out": "$/M out", "usd_per_m_good": "$/M good"}
 SUMMARY_COLS = ["config", "weights_gib", "kv_cache_tokens", "knee_rps", "knee_out_tok_s", "knee_goodput_tok_s", "knee_slo_pass_rate",
                 "usd_per_m_good_at_knee", "ttft_p50_ms_at_common", "itl_p50_ms_at_common", "itl_p99_ms_at_common", "slo_pass_rate_at_common"]
@@ -44,7 +44,7 @@ def _plots(out: Path, curves: dict[str, list[dict]], gpu_usd_per_hour: float) ->
     fig_for("itl", "inter-token latency (ms)", [("itl_p50_ms", "-", "p50"), ("itl_p99_ms", ":", "p99")], title="Inter-token latency vs offered load")
     fig_for("throughput", "output tokens / s", [("out_tok_s", "-", "")], title="Output throughput vs offered load")
     fig_for("goodput", "tokens / s inside the SLO", [("goodput_tok_s", "-", "")], title="Goodput vs offered load")
-    fig_for("cost", f"$ per M tokens at ${gpu_usd_per_hour}/h", [("usd_per_m_out", "-", "all tokens"), ("usd_per_m_good", ":", "SLO-meeting tokens")],
+    fig_for("cost", f"USD per M output tokens at USD {gpu_usd_per_hour}/h", [("usd_per_m_out", "-", "all tokens"), ("usd_per_m_good", ":", "SLO-meeting tokens")],
             logy=True, title="Cost per million output tokens vs offered load")
     return files
 

@@ -1,0 +1,19 @@
+req/s=0.5    req=24   err=0   out_tok/s=   55.6  ttft_p50=    78ms  itl_p50= 14.2ms  goodput=0.39 req/s
+req/s=1.0    req=51   err=0   out_tok/s=  112.9  ttft_p50=    62ms  itl_p50= 15.4ms  goodput=0.84 req/s
+req/s=2.0    req=99   err=0   out_tok/s=  219.4  ttft_p50=    69ms  itl_p50= 17.5ms  goodput=1.58 req/s
+req/s=4.0    req=227  err=0   out_tok/s=  477.5  ttft_p50=   115ms  itl_p50= 36.2ms  goodput=3.56 req/s
+req/s=6.0    req=347  err=0   out_tok/s=  652.7  ttft_p50=   242ms  itl_p50= 84.3ms  goodput=1.41 req/s
+req/s=8.0    req=464  err=0   out_tok/s=  751.9  ttft_p50=   434ms  itl_p50=165.7ms  goodput=0.42 req/s
+**tokenbench run** · model: Qwen/Qwen2.5-3B-Instruct-AWQ · mode: open · server: http://127.0.0.1:8000
+
+| level | req | err | out tok/s | TTFT p50 | TTFT p95 | ITL p50 | ITL p95 | TPOT p50 | SLO pass | goodput req/s |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0.5 | 24 | 0 | 56 | 78 ms | 135 ms | 14.2 ms | 16.0 ms | 14.4 ms | 100% | 0.39 |
+| 1.0 | 51 | 0 | 113 | 62 ms | 154 ms | 15.4 ms | 17.9 ms | 15.7 ms | 100% | 0.84 |
+| 2.0 | 99 | 0 | 219 | 69 ms | 135 ms | 17.5 ms | 24.6 ms | 18.4 ms | 100% | 1.58 |
+| 4.0 | 227 | 0 | 478 | 115 ms | 229 ms | 36.2 ms | 57.2 ms | 37.0 ms | 100% | 3.56 |
+| 6.0 | 347 | 0 | 653 | 242 ms | 341 ms | 84.3 ms | 117.3 ms | 90.6 ms | 28% | 1.41 |
+| 8.0 | 464 | 0 | 752 | 434 ms | 656 ms | 165.7 ms | 229.5 ms | 168.0 ms | 8% | 0.42 |
+
+SLO: TTFT ≤ 1000 ms and TPOT ≤ 60 ms. Goodput counts only requests meeting both.
+
