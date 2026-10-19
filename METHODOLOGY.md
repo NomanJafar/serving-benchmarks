@@ -71,7 +71,7 @@ Kaggle, one Tesla T4 (16 GB, Turing, no bfloat16, no FP8, 320 GB/s), vLLM 0.31.0
 
 ## 6. Threats to validity
 
-- **One run per configuration, one seed.** No error bars. Differences under ~10% between configurations should be treated as noise until repeated; the README says which conclusions rest on larger gaps.
+- **Two runs per configuration, one seed.** Run 2 (19 Oct) repeated run 1 unchanged: identical knees, goodput at the knee within 1–4 % for servers inside their capacity and 20 % for the one in overload, medians within 3–9 %. Differences under ~10 % between configurations are inside that spread; the README says which conclusions rest on larger gaps.
 - **Synthetic prompts.** The sample set has realistic length shape but not realistic content. Speculative acceptance (0.69 at k=1 in specdec on these prompts) could differ on real text in either direction; prefix caching is content-independent.
 - **Quality is not measured here.** The AWQ row is faster and cheaper per token; whether the answers are as good is quantlab's measurement (perplexity +8.4%, GSM8K −15 points for this checkpoint), restated in the README, not re-measured.
 - **One GPU type, one model size.** The T4's slow prefill and lack of fast INT4 paths shape every curve; on an A100/H100 the ordering can change (specdec's and quantlab's primers explain why).

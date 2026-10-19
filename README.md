@@ -25,7 +25,7 @@ Public, reproducible benchmarks are the strongest hiring signal in infra, and mo
 
 ## Status
 
-Done. One full run on a Kaggle T4 (18 Oct 2026), all four configurations, written up below; raw JSON and the generated report in [results/kaggle_run1/](results/kaggle_run1/).
+Done. Two full runs on a Kaggle T4 (18 and 19 Oct 2026), all four configurations each; run 1 is written up below and run 2 is the repeatability check. Raw JSON and generated reports in [results/kaggle_run1/](results/kaggle_run1/) and [results/kaggle_run2/](results/kaggle_run2/).
 
 ## Results (Tesla T4, vLLM 0.31.0, Qwen2.5-3B-Instruct, 18 Oct 2026)
 
@@ -55,9 +55,22 @@ One sweep per configuration: 0.5 → 8 req/s offered, 60 s per level, open loop,
 5. **Against a hosted tier** at $0.60 per M output tokens, the AWQ server at its knee is 3x cheaper, FP16 with caching 1.3x cheaper, and FP16 without caching 2.3x *more* expensive, all at 100 % utilisation. [tokenmeter](https://github.com/NomanJafar/tokenmeter) measured what idle time does to these figures (at 30 % utilisation the price triples); the knee is a ceiling on efficiency, not a forecast.
 6. **Cold starts were 110–196 s** (weights download included for the first use of each checkpoint), the same order as every other project here; nothing in the configuration changes it except the smaller AWQ download.
 
+### Repeatability (run 2, 19 Oct 2026)
+
+The whole notebook was run a second time, unchanged ([results/kaggle_run2/](results/kaggle_run2/); `serving-benchmarks compare` wrote [results/repeatability.md](results/repeatability.md)):
+
+| config | knee (req/s), run 1 / 2 | goodput tok/s at knee | spread | $/M good at knee | TTFT p50 at 2 req/s | spread | ITL p50 at 2 req/s | spread |
+|---|---|---|---|---|---|---|---|---|
+| `awq-prefix` | 4 / 4 | 477 / 480 | 1 % | 0.204 / 0.202 | 69 / 63 ms | 9 % | 17.5 / 16.2 ms | 8 % |
+| `fp16-prefix` | 2 / 2 | 208 / 211 | 2 % | 0.467 / 0.460 | 137 / 127 ms | 8 % | 43.4 / 41.1 ms | 5 % |
+| `specdec-k1` | 2 / 2 | 204 / 212 | 4 % | 0.477 / 0.460 | 199 / 194 ms | 3 % | 78.6 / 74.5 ms | 5 % |
+| `fp16` | 1 / 1 | 68 / 83 | 20 % | 1.43 / 1.17 | 896 / 775 ms | 14 % | 88.3 / 74.4 ms | 17 % |
+
+Every knee landed on the same level, goodput at the knee repeated within 1–4 % for the three servers that were inside their capacity, and medians at 2 req/s within 3–9 %. The plain FP16 server, which is past its knee at 1 req/s, repeated within 14–20 %: numbers taken from a server in overload are unstable by nature, which is one more reason to report the knee rather than the far end of the curve.
+
 ### Threats to validity, as they turned out
 
-One run per configuration, one seed (section 6 of the methodology stands). The AWQ, FP16-with-caching and speculative curves are separated by factors of 1.5–2.3x at the knee, well outside run-to-run noise on this harness (tokenbench reproduced servellm's numbers within 2–5 %); the speculative-vs-FP16 gap at 0.5–1 req/s (10–18 %) is close to that noise and should be read as "about equal". The TPOT correction is derived from the raw records, not re-measured; the ITL columns (inter-chunk) still overstate the speculative server's per-token gaps and are left as recorded.
+Two runs per configuration, one seed each. The AWQ, FP16-with-caching and speculative curves are separated by factors of 1.5–2.3x at the knee, an order of magnitude above the measured run-to-run spread (1–4 % on goodput, under 10 % on medians); the speculative-vs-FP16 gap at 0.5–1 req/s (10–18 %) is within reach of that spread and should be read as "about equal". The TPOT correction is derived from the raw records, not re-measured; the ITL columns (inter-chunk) still overstate the speculative server's per-token gaps and are left as recorded.
 
 ## Layout
 

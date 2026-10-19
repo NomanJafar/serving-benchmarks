@@ -1,0 +1,12 @@
+{
+ "attention_backend": "TRITON_ATTN",
+ "model_load_gib": 5.79,
+ "model_load_seconds": null,
+ "kv_cache_gib": 6.45,
+ "kv_cache_tokens": 187744,
+ "max_concurrency": 45.84,
+ "startup_s": 99.70769500732422,
+ "config": "FP16 + prefix caching",
+ "model": "Qwen/Qwen2.5-3B-Instruct",
+ "extra_args": []
+}

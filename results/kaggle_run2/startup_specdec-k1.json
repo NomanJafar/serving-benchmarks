@@ -1,0 +1,15 @@
+{
+ "attention_backend": "TRITON_ATTN",
+ "model_load_gib": 6.73,
+ "model_load_seconds": null,
+ "kv_cache_gib": 5.06,
+ "kv_cache_tokens": 110528,
+ "max_concurrency": 26.98,
+ "startup_s": 156.6173346042633,
+ "config": "FP16 + speculative decoding (draft 0.5B, k=1)",
+ "model": "Qwen/Qwen2.5-3B-Instruct",
+ "extra_args": [
+  "--speculative-config",
+  "{\"method\": \"draft_model\", \"model\": \"Qwen/Qwen2.5-0.5B-Instruct\", \"num_speculative_tokens\": 1}"
+ ]
+}

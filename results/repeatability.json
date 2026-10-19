@@ -1,0 +1,146 @@
+[
+ {
+  "config": "awq-prefix",
+  "runs": 2,
+  "knee_rps": [
+   4.0,
+   4.0
+  ],
+  "knee_goodput_tok_s": [
+   477.0,
+   480.5
+  ],
+  "knee_goodput_spread": 0.007310704960835509,
+  "usd_per_m_good_at_knee": [
+   0.20382017237363148,
+   0.2023355301190889
+  ],
+  "ttft_p50_ms_at_common": [
+   68.9,
+   62.7
+  ],
+  "ttft_spread": 0.09422492401215808,
+  "itl_p50_ms_at_common": [
+   17.5,
+   16.2
+  ],
+  "itl_spread": 0.07715133531157274,
+  "out_tok_s_at_common": [
+   219.4,
+   220.2
+  ],
+  "out_tok_s_spread": 0.0036396724294812687,
+  "slo_pass_rate_at_common": [
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "config": "fp16-prefix",
+  "runs": 2,
+  "knee_rps": [
+   2.0,
+   2.0
+  ],
+  "knee_goodput_tok_s": [
+   208.1,
+   211.3
+  ],
+  "knee_goodput_spread": 0.015259895088221351,
+  "usd_per_m_good_at_knee": [
+   0.4671899193763682,
+   0.46011463427459637
+  ],
+  "ttft_p50_ms_at_common": [
+   137.4,
+   126.9
+  ],
+  "ttft_spread": 0.07945516458569807,
+  "itl_p50_ms_at_common": [
+   43.4,
+   41.1
+  ],
+  "itl_spread": 0.05443786982248514,
+  "out_tok_s_at_common": [
+   208.1,
+   211.3
+  ],
+  "out_tok_s_spread": 0.015259895088221351,
+  "slo_pass_rate_at_common": [
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "config": "fp16",
+  "runs": 2,
+  "knee_rps": [
+   1.0,
+   1.0
+  ],
+  "knee_goodput_tok_s": [
+   67.8,
+   83.0
+  ],
+  "knee_goodput_spread": 0.20159151193633953,
+  "usd_per_m_good_at_knee": [
+   1.4339560799737792,
+   1.1713520749665327
+  ],
+  "ttft_p50_ms_at_common": [
+   895.8,
+   774.8
+  ],
+  "ttft_spread": 0.1448581348018676,
+  "itl_p50_ms_at_common": [
+   88.3,
+   74.4
+  ],
+  "itl_spread": 0.17086662569145658,
+  "out_tok_s_at_common": [
+   196.4,
+   202.1
+  ],
+  "out_tok_s_spread": 0.028607277289836832,
+  "slo_pass_rate_at_common": [
+   0.010101010101010102,
+   0.030303030303030304
+  ]
+ },
+ {
+  "config": "specdec-k1",
+  "runs": 2,
+  "knee_rps": [
+   2.0,
+   2.0
+  ],
+  "knee_goodput_tok_s": [
+   203.7,
+   211.5
+  ],
+  "knee_goodput_spread": 0.03757225433526017,
+  "usd_per_m_good_at_knee": [
+   0.4772814051164566,
+   0.45967953769372205
+  ],
+  "ttft_p50_ms_at_common": [
+   199.3,
+   193.6
+  ],
+  "ttft_spread": 0.029015016543649873,
+  "itl_p50_ms_at_common": [
+   78.6,
+   74.5
+  ],
+  "itl_spread": 0.053559764859568836,
+  "out_tok_s_at_common": [
+   212.5,
+   212.7
+  ],
+  "out_tok_s_spread": 0.0009407337723423737,
+  "slo_pass_rate_at_common": [
+   0.9494949494949495,
+   0.98989898989899
+  ]
+ }
+]
