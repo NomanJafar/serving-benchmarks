@@ -42,3 +42,10 @@ def test_cli_report_and_configs(results_dir, capsys):
     main(["configs"])
     out = capsys.readouterr().out
     assert "vllm serve Qwen/Qwen2.5-3B-Instruct" in out and "--speculative-config" in out
+
+
+def test_cli_compare_writes_markdown_and_json(results_dir, tmp_path, capsys):
+    out = tmp_path / "repeatability.md"
+    main(["compare", "--results", str(results_dir), str(results_dir), "--gpu-usd-per-hour", "0.35", "--out", str(out)])
+    assert out.exists() and out.with_suffix(".json").exists()
+    assert "| awq-prefix | 2 |" in out.read_text()

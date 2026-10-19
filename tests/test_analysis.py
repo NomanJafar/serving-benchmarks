@@ -1,6 +1,6 @@
 import json
 
-from serving_benchmarks.analysis import curve_rows, knee, load_results, summary_rows, usd_per_m_tokens
+from serving_benchmarks.analysis import compare_runs, curve_rows, knee, load_results, summary_rows, usd_per_m_tokens
 from tests.conftest import fake_sweep
 
 
@@ -68,3 +68,25 @@ def test_slo_is_recomputed_per_token_from_the_request_records():
     rows = curve_rows(sweep, 0.35)
     assert rows[0]["slo_pass_rate"] == 0.25 and rows[0]["slo_pass_rate_chunks"] == 0.9 and rows[0]["goodput_tok_s"] == 10.0
     assert rows[1]["slo_pass_rate_chunks"] is None       # levels without records keep the recorded figures
+
+
+def test_compare_runs_reports_per_config_spread_across_result_dirs(results_dir, tmp_path):
+    """Repeatability: the same configurations measured twice. For each config, the knee goodput and the
+    latency at the common level from every run, plus the relative spread (max-min over mean)."""
+    import json
+    import shutil
+
+    run2 = tmp_path / "run2"
+    shutil.copytree(results_dir, run2, ignore=shutil.ignore_patterns("report"))
+    sweep = json.loads((run2 / "sweep_fp16.json").read_text())
+    for lv in sweep["levels"]:
+        lv["output_tokens_per_s"] *= 1.1
+        lv["goodput_tokens_per_s"] *= 1.1
+    (run2 / "sweep_fp16.json").write_text(json.dumps(sweep))
+    rows = compare_runs([results_dir, run2], gpu_usd_per_hour=0.35, common_rps=2)
+    by = {r["config"]: r for r in rows}
+    assert by["fp16"]["runs"] == 2 and by["fp16"]["knee_rps"] == [4, 4]
+    assert abs(by["fp16"]["knee_goodput_spread"] - (440 - 400) / 420) < 1e-6
+    assert by["awq-prefix"]["knee_goodput_spread"] == 0.0
+    t = by["awq-prefix"]["ttft_p50_ms_at_common"]
+    assert len(t) == 2 and t[0] == t[1] and abs(t[0] - 92.3) < 0.1

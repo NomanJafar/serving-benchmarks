@@ -1,11 +1,13 @@
-"""`serving-benchmarks report|configs|sweep-args`."""
+"""`serving-benchmarks report|compare|configs|sweep-args`."""
 
 from __future__ import annotations
 
 import argparse
+import json
 import shlex
 from pathlib import Path
 
+from serving_benchmarks.analysis import compare_runs, repeatability_markdown
 from serving_benchmarks.configs import CONFIGS, serve_command, system_prompt
 from serving_benchmarks.report import build_report
 
@@ -32,6 +34,11 @@ def main(argv: list[str] | None = None) -> None:
     r.add_argument("--gpu-usd-per-hour", type=float, required=True)
     r.add_argument("--common-rps", type=float, default=2.0, help="the offered load at which configs are compared side by side")
     r.add_argument("--no-plots", action="store_true")
+    c = sub.add_parser("compare", help="repeatability across several runs of the same configurations")
+    c.add_argument("--results", type=Path, nargs="+", required=True)
+    c.add_argument("--gpu-usd-per-hour", type=float, required=True)
+    c.add_argument("--common-rps", type=float, default=2.0)
+    c.add_argument("--out", type=Path, default=None, help="write the Markdown table here as well as printing it")
     sub.add_parser("configs", help="print the vllm serve line for each configuration")
     s = sub.add_parser("sweep-args", help="print the tokenbench command (without the long system prompt)")
     s.add_argument("--base-url", default="http://127.0.0.1:8000")
@@ -40,6 +47,13 @@ def main(argv: list[str] | None = None) -> None:
     if a.cmd == "report":
         files = build_report(a.results, a.out or a.results / "report", a.gpu_usd_per_hour, a.common_rps, plots=not a.no_plots)
         print("\n".join(str(f) for f in files))
+    elif a.cmd == "compare":
+        rows = compare_runs(a.results, a.gpu_usd_per_hour, a.common_rps)
+        md = repeatability_markdown(rows)
+        if a.out:
+            a.out.write_text(md)
+            a.out.with_suffix(".json").write_text(json.dumps(rows, indent=1))
+        print(md)
     elif a.cmd == "configs":
         for c in CONFIGS:
             print(f"# {c.slug}: {c.name}\n{shlex.join(serve_command(c))}\n")

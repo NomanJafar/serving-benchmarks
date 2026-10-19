@@ -112,6 +112,53 @@ def summary_rows(results: dict[str, dict], gpu_usd_per_hour: float, common_rps: 
     return rows
 
 
+def _spread(vals: list) -> float | None:
+    vals = [v for v in vals if v is not None]
+    if len(vals) < 2:
+        return None
+    mean = sum(vals) / len(vals)
+    return (max(vals) - min(vals)) / mean if mean else None
+
+
+def _column(rows: list[dict]):
+    return lambda name: [r.get(name) for r in rows]
+
+
+def compare_runs(results_dirs: list, gpu_usd_per_hour: float, common_rps: float) -> list[dict]:
+    """Repeatability across several result directories of the same configurations: per config, the knee and
+    the latency at the common level from every run, and the relative spread (max - min over the mean)."""
+    per: dict[str, list[dict]] = {}
+    for d in results_dirs:
+        for row in summary_rows(load_results(d), gpu_usd_per_hour, common_rps):
+            per.setdefault(row["config"], []).append(row)
+    out = []
+    for cfg, rows in per.items():
+        col = _column(rows)
+        out.append({
+            "config": cfg, "runs": len(rows),
+            "knee_rps": col("knee_rps"), "knee_goodput_tok_s": col("knee_goodput_tok_s"), "knee_goodput_spread": _spread(col("knee_goodput_tok_s")),
+            "usd_per_m_good_at_knee": col("usd_per_m_good_at_knee"),
+            "ttft_p50_ms_at_common": col("ttft_p50_ms_at_common"), "ttft_spread": _spread(col("ttft_p50_ms_at_common")),
+            "itl_p50_ms_at_common": col("itl_p50_ms_at_common"), "itl_spread": _spread(col("itl_p50_ms_at_common")),
+            "out_tok_s_at_common": col("out_tok_s_at_common"), "out_tok_s_spread": _spread(col("out_tok_s_at_common")),
+            "slo_pass_rate_at_common": col("slo_pass_rate_at_common"),
+        })
+    return out
+
+
+def repeatability_markdown(rows: list[dict]) -> str:
+    def lst(v):
+        return " / ".join("–" if x is None else (f"{x:.3g}" if isinstance(x, float) else str(x)) for x in v)
+
+    def pc(v):
+        return "–" if v is None else f"{v * 100:.0f} %"
+    head = "| config | runs | knee req/s | goodput tok/s at knee | spread | $/M good at knee | TTFT p50 ms @common | spread | ITL p50 ms @common | spread | out tok/s @common | spread |\n|---|---|---|---|---|---|---|---|---|---|---|---|\n"
+    body = "\n".join(f"| {r['config']} | {r['runs']} | {lst(r['knee_rps'])} | {lst(r['knee_goodput_tok_s'])} | {pc(r['knee_goodput_spread'])} | "
+                      f"{lst(r['usd_per_m_good_at_knee'])} | {lst(r['ttft_p50_ms_at_common'])} | {pc(r['ttft_spread'])} | {lst(r['itl_p50_ms_at_common'])} | {pc(r['itl_spread'])} | "
+                      f"{lst(r['out_tok_s_at_common'])} | {pc(r['out_tok_s_spread'])} |" for r in rows)
+    return head + body + "\n"
+
+
 def markdown_table(rows: list[dict], columns: list[str], headers: dict[str, str] | None = None) -> str:
     headers = headers or {}
 
