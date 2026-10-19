@@ -17,7 +17,7 @@ Load curves for Qwen2.5-3B-Instruct on one T4 under four servers, all measured w
 
 For each: TTFT and ITL percentiles against offered load, output tokens per second, goodput under a stated SLO (TTFT ≤ 1 s, TPOT ≤ 60 ms), the knee (the load with the most goodput), and $ per million output tokens at an assumed $0.35/h, for all tokens and for the tokens that met the SLO.
 
-[METHODOLOGY.md](METHODOLOGY.md) is the contract: configurations with exact `vllm serve` lines, the workload and why it is open-loop, the metric definitions, the SLO and price and why those values, threats to validity, and how to rerun. The analysis (`serving-benchmarks report`) is pure Python over tokenbench's JSON and is covered by 13 tests on synthetic sweeps, so the tables can be regenerated from the committed raw data by anyone.
+[METHODOLOGY.md](METHODOLOGY.md) is the contract: configurations with exact `vllm serve` lines, the workload and why it is open-loop, the metric definitions, the SLO and price and why those values, threats to validity, and how to rerun. The analysis (`serving-benchmarks report`) is pure Python over tokenbench's JSON and is covered by 15 tests on synthetic sweeps, so the tables can be regenerated from the committed raw data by anyone.
 
 ## Why it matters
 
@@ -67,7 +67,7 @@ One run per configuration, one seed (section 6 of the methodology stands). The A
 | `src/serving_benchmarks/configs.py` | the four `BenchConfig`s, `serve_command()`, the deterministic 560-word `system_prompt()` |
 | `src/serving_benchmarks/analysis.py` | `curve_rows()`, `knee()`, `usd_per_m_tokens()`, `summary_rows()`, Markdown tables |
 | `src/serving_benchmarks/report.py` | `build_report()`: summary.md, curves.md, summary.json, five plots |
-| `src/serving_benchmarks/cli.py` | `serving-benchmarks report\|configs\|sweep-args`; the tokenbench command every configuration is measured with |
+| `src/serving_benchmarks/cli.py` | `serving-benchmarks report\|compare\|configs\|sweep-args`; the tokenbench command every configuration is measured with |
 | `tests/` | synthetic sweeps that saturate; cost arithmetic, knee, pairing of sweeps with startup info, report files, CLI |
 | `notebooks/kaggle_serving_benchmarks.ipynb` | the T4 run |
 | `results/` | one directory per run with the raw JSON and the report |
@@ -82,6 +82,7 @@ serving-benchmarks configs        # the four vllm serve lines
 serving-benchmarks sweep-args     # the tokenbench command
 # after a run:
 serving-benchmarks report --results results/kaggle_run1 --gpu-usd-per-hour 0.35 --common-rps 2
+serving-benchmarks compare --results results/kaggle_run1 results/kaggle_run2 --gpu-usd-per-hour 0.35   # run-to-run spread
 ```
 
 ## Hardware notes
